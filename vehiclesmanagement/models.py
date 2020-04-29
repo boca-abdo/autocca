@@ -1,55 +1,78 @@
 from django.db import models
 
-from backend.utils import VGENRE, VCOLOR
+from backend.utils import VCOLOR, VGEARTYPE, VBOOTTYPE, TTRANSACTION
 from cvhus.models import Cvhu
-from vehiclereference.models import Vreference
+from vehiclesreferences.models import Vreference
+from vehiclesregistrations.models import VehicleRegDocument
+
+class VehiculeStatus(models.Model):
+
+    status_name = models.CharField(max_length=10)
 
 
-class Vehicles(models.Model):
+#INITIAL -> VALIDE -> ANNULLE
+#           L--> ENLEVE --> REPRIS
+#                    L--> CEDE --> VENDU (date de vente,
+#                            L--> PARC --> DEPOLLUE --> COMPACTE --> CEDE BROYEUR
+#                                   L--> COMPACTE --> CEDE BROYEUR
+
+class Invoice(models.Model):
+
+    transaction = models.ForeignKey(Transaction)
+
+    def generateInvoice(self):
+        check = self.transaction_set.filter(trans_tiers=)
+
+
+class Transaction(models.Model):
+
+    trans_type = models.CharField(max_length=10, choices=TTRANSACTION)
+    trans_date = models.DateField(auto_now=True)
+    trans_tiers = models.ForeignKey(Tiers, on_delete=models.SET_NULL, null=True)
+    trans_price = models.DecimalField(max_digits=10, decimal_places=2)
+    trans_payment_type = models.CharField(max_length=10, choices=TPAYMENT)
+    trans_payment_date = models.DateField(auto_now=True)
+    trans_invoice = models.ManyToManyField(Invoice)
+    trans_gross_price = models.DecimalField (max_digits=10, decimal_places=2)
+    trans_vat_rate = models.DecimalField(max_digits=10, decimal_places=2)
+
+
+
+class VehicleTransaction(Transaction):
+
+
+
+    #vehicule objet de classe véhicule
+    #acheteur objet de la classe Client
+
+
+class Vehicle(models.Model):
 
     cvhu = models.ForeignKey(Cvhu, on_delete=models.SET_NULL, null=True)
+
+    vstatus = models.ForeignKey(VehiculeStatus, on_delete=models.SET_NULL)
 
     is_valid = models.BooleanField(default=False)
     lp_number = models.PositiveIntegerField(null=True, blank=True)
 
-    reg_number = models.CharField("immatriculation", max_length=10, default="", unique=True)
-    vin = models.CharField(max_length=20, default="", unique=True)
-    type_number = models.CharField(max_length=20, default="", unique=True)
+    reg_number = models.CharField(max_length=10, default="", unique=True)
 
     reference = models.ForeignKey(Vreference, on_delete=models.SET_NULL, null=True)
-
-    genre = models.CharField(max_length=3, choices=VGENRE)
 
     color = models.CharField(max_length=10, choices=VCOLOR)
 
     #vcolorcode = models.CharField(max_length=10)
-
-    fuel_type = models.CharField(max_length=20, default="", null=True)
-
-    cylinders = models.CharField(max_length=20, default="", null=True)
-
-    power = models.PositiveSmallIntegerField(default=0)
-
-    fiscal_power = models.PositiveSmallIntegerField(default=0)
-
+    #color_code = getVehicleColorCode(vcolorcode, vmake)
+    horse_power = models.PositiveSmallIntegerField(default=0)
     engine_code = models.CharField(max_length=20, default='', null=True)
-
     gear_code = models.CharField(max_length=20, default='', null=True)
-
     gear_type = models.CharField(max_length=3, choices=VGEARTYPE)
-
     no_of_doors = models.CharField(max_length=20, default="", null=True)
+    boot_type = models.CharField(max_length=20, choices=VBOOTTYPE)
 
-    #
-    # #administrative fields
-    # first_reg_date = models.DateField(null=True)
-    #
-    # reg_date = models.DateField(null=True)
-    #
-    # reg_formula_number = models.CharField(max_length=10, default='', null=True)
-    #
-    # #titlar informations
-    # reg_titular_lname = models.CharField(max_length=10, default='', null=True)
+    def clean(self):
+        if self.vstatus < 6:
+            raise Validationerror()
 
     def get_vmake(self):
         return self.reference.vfinition.vversion.vbrand.vmodel.vmake
@@ -68,8 +91,6 @@ class Vehicles(models.Model):
 
     def get_v(self):
         return self.reference.vfinition
-
-
 
     # def checklp(self):
     #     Vehicles.objects.filter(lpnumber__isnull=True).last()

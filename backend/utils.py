@@ -1,3 +1,6 @@
+from typing import Tuple
+
+
 def get_upload_path(instance, filename):
     return 'profile_pics/{0}/{1}'.format(instance, filename)
 
@@ -20,4 +23,21 @@ VCOLOR = (
     ('',''),
     ('noir','Noir'),
     ('blanc','Blanc'),
+)
+
+VGEARTYPE = (
+    ('manuelle', 'manuelle'),
+    ('automatique', 'automatique'),
+    ('semi-automatique', 'semi-automatique'),
+)
+
+VBOOTTYPE = (
+    ('hayon', 'hayon'),
+    ('battant', 'battant'),
+    ('autre', 'autre')
+)
+
+TTRANSACTION = (
+    ('achat', 'achat'),
+    ('vente', 'vente'),
 )

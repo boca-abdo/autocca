@@ -41,7 +41,8 @@ INSTALLED_APPS = [
 
     'accounts',
     'cvhus',
-    'vehiclereference',
+    'vehiclesreferences',
+    'vehiclesregistrations',
     'vehiclesmanagement',
 
     'allauth',
